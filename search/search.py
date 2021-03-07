@@ -164,9 +164,9 @@ def depthFirstSearch(problem):
                 frontier.push(child_node)
     return None
 
+
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
-    "*** YOUR CODE HERE ***"
 
     class Node:
         def __init__(self, state, parent, action):
@@ -223,13 +223,67 @@ def nullHeuristic(state, problem=None):
     A heuristic function estimates the cost from the current state to the nearest
     goal in the provided SearchProblem.  This heuristic is trivial.
     """
-    return 0
+    return util.manhattanDistance(state, problem.goal)
 
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # print(heuristic(problem.getStartState(), problem=problem))
+
+    class Node:
+        def __init__(self, state, parent, action, cost):
+            self.state = state  # a tuple (x, y)
+            self.parent = parent  # parent node
+            self.action = action  # how to get to this state
+            self.cost = cost  # total (actual) cost to get to this node g(n)
+            self.h = nullHeuristic(state, problem=problem)  # h(n)
+            self.f = cost + self.h  # for any node, f(n) = g(n) + h(n)
+
+    # frontier = {startNode}
+    startNode = Node(state=problem.getStartState(),
+                     parent=None,
+                     action=None,
+                     cost=0)
+
+    frontier = util.PriorityQueue()
+    frontier.push(startNode, priority=0)
+
+    # expanded = {}
+    expanded = []
+    solutions = []
+
+    # while frontier is not empty:
+    while not frontier.isEmpty():
+
+        # node = frontier.pop()
+        node = frontier.pop()
+
+        # if isGoal(node):
+        if problem.isGoalState(node.state):
+            # return path_to_node
+            solutions.append(node.action)
+            while node.parent.action is not None:
+                node = node.parent
+                solutions.append(node.action)
+            solutions.reverse()
+            return solutions
+
+        # if node not in expanded:
+        if node.state not in expanded:
+            # expanded.add(node)
+            expanded.append(node.state)
+            triples = problem.expand(node.state)
+            for i in triples:
+                child_state = i[0]
+                child_action = i[1]
+                child_cost = i[2]
+                child_node = Node(state=child_state,
+                                  parent=node,
+                                  action=child_action,
+                                  cost=child_cost)
+                frontier.push(child_node,
+                              priority=child_node.f)
+    return None
 
 
 # Abbreviations
