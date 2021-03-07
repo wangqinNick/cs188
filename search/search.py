@@ -222,7 +222,7 @@ def nullHeuristic(state, problem=None):
     A heuristic function estimates the cost from the current state to the nearest
     goal in the provided SearchProblem.  This heuristic is trivial.
     """
-    return util.manhattanDistance(state, problem.goal)
+    return 0
 
 
 def aStarSearch(problem, heuristic=nullHeuristic):
@@ -235,7 +235,7 @@ def aStarSearch(problem, heuristic=nullHeuristic):
             self.parent = parent  # parent node
             self.action = action  # how to get to this state
             self.cost = cost  # total (actual) cost to get to this node g(n)
-            self.h = nullHeuristic(state, problem=problem)  # h(n)
+            self.h = heuristic(state, problem=problem)  # h(n)
             self.f = cost + self.h  # for any node, f(n) = g(n) + h(n)
 
     # frontier = {startNode}
