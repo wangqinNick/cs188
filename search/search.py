@@ -230,18 +230,20 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     # print(heuristic(problem.getStartState(), problem=problem))
 
     class Node:
-        def __init__(self, state, parent, action, cost):
+        def __init__(self, state, parent, action, cost, prev_cost):
             self.state = state  # a tuple (x, y)
             self.parent = parent  # parent node
             self.action = action  # how to get to this state
+            self.cost_sum = prev_cost + cost
             h = heuristic(state, problem=problem)  # h(n)
-            self.f = cost + h  # for any node, f(n) = g(n) + h(n)
+            self.f = self.cost_sum + h  # for any node, f(n) = g(n) + h(n)
 
     # frontier = {startNode}
     startNode = Node(state=problem.getStartState(),
                      parent=None,
                      action=None,
-                     cost=0)
+                     cost=0,
+                     prev_cost=0)
 
     frontier = util.PriorityQueue()
     frontier.push(startNode, priority=0)
@@ -278,7 +280,8 @@ def aStarSearch(problem, heuristic=nullHeuristic):
                 child_node = Node(state=child_state,
                                   parent=node,
                                   action=child_action,
-                                  cost=child_cost)
+                                  cost=child_cost,
+                                  prev_cost=node.cost_sum)
                 frontier.push(child_node,
                               priority=child_node.f)
     return None
