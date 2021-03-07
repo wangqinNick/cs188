@@ -317,25 +317,22 @@ class CornersProblem(search.SearchProblem):
         self._expanded = 0  # DO NOT CHANGE; Number of search nodes expanded
         # Please add any code here which you would like to use
         # in initializing the problem
-
-        food_count = 4
+        self.dictionary = {}
         for corner in self.corners:
-            if not startingGameState.hasFood(*corner):
-                food_count -= 1
-        self.food_remain = food_count  # track number of food remain
+            self.dictionary[corner] = False
 
     def getStartState(self):
         """
         Returns the start state (in your state space, not the full Pacman state
         space)
         """
-        return self.startingPosition
+        return (self.startingPosition, self.dictionary)
 
     def isGoalState(self, state):
         """
         Returns whether this search state is a goal state of the problem.
         """
-        return self.food_remain == 0
+        return not (False in state[1].values())
 
     def expand(self, state):
         """
@@ -349,23 +346,12 @@ class CornersProblem(search.SearchProblem):
         """
 
         children = []
-        state = (state, None)
         for action in self.getActions(state):
-
             # Add a child state to the child list if the action is legal
             # You should call getActions, getActionCost, and getNextState.
-            nextState = self.getNextState(state=state,
-                                          action=action)
-            cost = self.getActionCost(state=state,
-                                      action=action,
-                                      next_state=nextState)
+            nextState = self.getNextState(state, action)
+            cost = self.getActionCost(state, action, nextState)
             children.append((nextState, action, cost))
-
-        """
-        if state not in self._visited:
-            self._visited[state] = True
-            self._visitedlist.append(state)
-        """
 
         self._expanded += 1  # DO NOT CHANGE
         return children
@@ -392,10 +378,13 @@ class CornersProblem(search.SearchProblem):
         x, y = state[0]
         dx, dy = Actions.directionToVector(action)
         nextx, nexty = int(x + dx), int(y + dy)
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+
+        copy = state[1].copy()
+        if (nextx, nexty) in self.corners:
+            copy[(nextx, nexty)] = True
+
         # you will need to replace the None part of the following tuple.
-        return ((nextx, nexty), None)
+        return ((nextx, nexty), copy)
 
     def getCostOfActionSequence(self, actions):
         """
