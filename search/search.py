@@ -117,7 +117,7 @@ def depthFirstSearch(problem):
 
     class Node:
         def __init__(self, state, parent, action):
-            self.state = state  # a tuple (x, y)
+            self.state = state  # a tuple ((x, y), food)
             self.parent = parent  # parent node
             self.action = action  # how to get to this state
 
@@ -167,10 +167,9 @@ def depthFirstSearch(problem):
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
-
     class Node:
         def __init__(self, state, parent, action):
-            self.state = state  # a tuple (x, y)
+            self.state = state  # a tuple ((x, y), [visited corners])
             self.parent = parent  # parent node
             self.action = action  # how to get to this state
 
@@ -183,7 +182,7 @@ def breadthFirstSearch(problem):
     frontier.push(startNode)
 
     # expanded = {}
-    expanded = []
+    explored = []
     solutions = []
 
     # while frontier is not empty:
@@ -202,10 +201,10 @@ def breadthFirstSearch(problem):
             solutions.reverse()
             return solutions
 
-        # if node not in expanded:
-        if node.state not in expanded:
+        # if node position not in expanded:
+        if node.state not in explored:
             # expanded.add(node)
-            expanded.append(node.state)
+            explored.append(node.state)
             triples = problem.expand(node.state)
             for i in triples:
                 child_state = i[0]
