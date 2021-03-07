@@ -399,12 +399,14 @@ class CornersProblem(search.SearchProblem):
             if self.walls[x][y]: return 999999
         return len(actions)
 
+
 def manhattanDist(a, b):
     """
     Input: tuple, tuple
     return Integer
     """
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
+
 
 def cornersHeuristic(state, problem):
     """
@@ -438,6 +440,7 @@ def cornersHeuristic(state, problem):
                 min_manhattanDist = distance
 
     return max_manhattanDist
+
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
@@ -559,7 +562,12 @@ def foodHeuristic(state, problem):
     """
     position, foodGrid = state
     "*** YOUR CODE HERE ***"
-    return 0
+    foodList = foodGrid.asList()
+
+    if len(foodList) == 0:
+        return 0
+    else:
+        return max([mazeDistance(position, i, problem.startingGameState) for i in foodList])
 
 
 class ClosestDotSearchAgent(SearchAgent):
