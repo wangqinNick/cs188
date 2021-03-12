@@ -134,44 +134,33 @@ class MinimaxAgent(MultiAgentSearchAgent):
     """
     "If requisite no. of searches complete, evaluation function"
 
-    def value(self, gameState, current_depth, agent_index):
-        # if reach max depth or a terminate
-        if current_depth == self.depth or gameState.isWin() or gameState.isLose():
+    def max_value(self, gameState, current_depth):
+        current_depth += 1
+        if gameState.isWin() or gameState.isLose() or current_depth == self.depth:
             return self.evaluationFunction(gameState)
-        if agent_index == 0:
-            return self.max_value(gameState=gameState,
-                                  current_depth=current_depth,
-                                  agent_index=agent_index)
-        if agent_index > 0:
-            return self.min_value(gameState=gameState,
-                                  current_depth=current_depth,
-                                  agent_index=agent_index)
-
-    def max_value(self, gameState, current_depth, agent_index):
-
-        legal_actions = gameState.getLegalActions(agent_index)
-        successors = [gameState.getNextState(agent_index, action) for action in legal_actions]
+        legal_actions = gameState.getLegalActions(0)
+        successors = [gameState.getNextState(0, action) for action in legal_actions]
         v = -float('inf')
         for successor in successors:
-            v = max(v, self.value(gameState=successor,
-                                  current_depth=current_depth,
-                                  agent_index=agent_index+1))
+            v = max(v, self.min_value(gameState=successor,
+                                      current_depth=current_depth,
+                                      agent_index=1))
         return v
 
     def min_value(self, gameState, current_depth, agent_index):
-
+        if gameState.isWin() or gameState.isLose():
+            return self.evaluationFunction(gameState)
         legal_actions = gameState.getLegalActions(agent_index)
         successors = [gameState.getNextState(agent_index, action) for action in legal_actions]
         v = float('inf')
         for successor in successors:
-            if agent_index + 1 == gameState.getNumAgents():
-                v = min(v, self.value(gameState=successor,
-                                      current_depth=current_depth + 1,
-                                      agent_index=0))
+            if agent_index + 1 >= gameState.getNumAgents():
+                v = min(v, self.max_value(gameState=successor,
+                                          current_depth=current_depth + 1))
             else:
-                v = min(v, self.value(gameState=successor,
-                                      current_depth=current_depth,
-                                      agent_index=agent_index + 1))
+                v = min(v, self.min_value(gameState=successor,
+                                          current_depth=current_depth,
+                                          agent_index=agent_index + 1))
             return v
 
     def getAction(self, gameState):
@@ -198,19 +187,20 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Returns whether or not the game state is a losing state
         """
 
-        legal_actions = gameState.getLegalActions(0)
+        legal_actions = gameState.getLegalActions(self.index)
         successors = [gameState.getNextState(0, action) for action in legal_actions]
         maxValue = -float('inf')
         goalIndex = 0
         for x in range(len(successors)):
-            actionValue = self.value(gameState=successors[x],
-                                     current_depth=1,
-                                     agent_index=0)
+            actionValue = self.min_value(gameState=successors[x],
+                                         current_depth=1,
+                                         agent_index=0)
             if actionValue > maxValue:
                 maxValue = actionValue
                 goalIndex = x
 
         return legal_actions[goalIndex]
+
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
