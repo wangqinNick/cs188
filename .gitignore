@@ -2,3 +2,5 @@
 .idea/
 
 search/__pycache__/
+
+multiagent/__pycache__/
