@@ -133,36 +133,6 @@ class MinimaxAgent(MultiAgentSearchAgent):
     Your minimax agent (question 2)
     """
     "If requisite no. of searches complete, evaluation function"
-    """
-    def max_value(self, gameState, current_depth):
-        current_depth += 1
-        if gameState.isWin() or gameState.isLose() or current_depth == self.depth:
-            return self.evaluationFunction(gameState)
-        legal_actions = gameState.getLegalActions(0)
-        successors = [gameState.getNextState(0, action) for action in legal_actions]
-        v = -float('inf')
-        for successor in successors:
-            v = max(v, self.min_value(gameState=successor,
-                                      current_depth=current_depth,
-                                      agent_index=1))
-        return v
-
-    def min_value(self, gameState, current_depth, agent_index):
-        if gameState.isWin() or gameState.isLose():
-            return self.evaluationFunction(gameState)
-        legal_actions = gameState.getLegalActions(agent_index)
-        successors = [gameState.getNextState(agent_index, action) for action in legal_actions]
-        v = float('inf')
-        for successor in successors:
-            if agent_index + 1 >= gameState.getNumAgents():
-                v = min(v, self.max_value(gameState=successor,
-                                          current_depth=current_depth + 1))
-            else:
-                v = min(v, self.min_value(gameState=successor,
-                                          current_depth=current_depth,
-                                          agent_index=agent_index + 1))
-            return v
-    """
 
     def getAction(self, gameState):
         """
@@ -187,34 +157,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
         gameState.isLose():
         Returns whether or not the game state is a losing state
         """
-        """    ghostIndex = [i for i in range(1, gameState.getNumAgents())]
 
-        def terminal(state, depth):
-            return state.isWin() or state.isLose() or self.depth == depth
-
-        def max_value(state, depth):
-            if terminal(state, depth):
-                return self.evaluationFunction(state)
-            v = -float('inf')
-            for action in state.getLegalActions(0):
-                v = max(v, min_value(state.getNextState(0, action), depth, 1))
-            return v
-
-        def min_value(state, depth, ghost):
-            if terminal(state, depth):
-                return self.evaluationFunction(state)
-            v = float('inf')
-            for action in state.getLegalActions(ghost):
-                if ghost == ghostIndex[-1]:
-                    v = min(v, max_value(state.getNextState(ghost, action), depth + 1))
-                else:
-                    v = min(v, min_value(state.getNextState(ghost, action), depth, ghost + 1))
-            return v
-
-        result = [(action, min_value(gameState.getNextState(0, action), 0, 1)) for action in
-                  gameState.getLegalActions()]
-        result.sort(key=lambda x: x[1])
-        return result[-1][0]"""
         GhostIndex = [i for i in range(1, gameState.getNumAgents())]
 
         def isTerminate(state, d):
@@ -262,115 +205,65 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
+        GhostIndex = [i for i in range(1, gameState.getNumAgents())]
 
         def isTerminate(state, depth):
             return state.isWin() or state.isLose() or depth == self.depth
 
-        def value(state, alpha, beta, depth, ghostIndex):
-            if isTerminate(state, depth):
-                return self.evaluationFunction(state)
-            print(ghostIndex)
-            if ghostIndex == state.getNumAgents():
-                ghostIndex = 0
-            if ghostIndex == 0:
-                return max_value(state=state, alpha=alpha, beta=beta,
-                                 depth=depth)
-            else:
-                return min_value(state=state, alpha=alpha, beta=beta,
-                                 depth=depth, ghostIndex=ghostIndex)
-
         def max_value(state, alpha, beta, depth, ghostIndex=0):
+            if isTerminate(state, depth): return self.evaluationFunction(state)
+
             v = -float('inf')
-            actions = state.getLegalActions(ghostIndex)
-            childrenState = state.getNextState(ghostIndex, actions)
-            ghostIndex += 1
-            for childState in childrenState:
-                v = max(v, value(childState, alpha, beta, depth, ghostIndex))
-                if v >= beta: return v
+            for action in state.getLegalActions(0):
+                v = max(v, min_value(state=state.getNextState(0, action),
+                                     alpha=alpha,
+                                     beta=beta,
+                                     depth=depth,
+                                     ghostIndex=1))
+                if v > beta: return v
                 alpha = max(alpha, v)
             return v
 
         def min_value(state, alpha, beta, depth, ghostIndex):
+            if isTerminate(state, depth): return self.evaluationFunction(state)
+
             v = float('inf')
-            actions = state.getLegalActions(ghostIndex)
-            childrenState = state.getNextState(ghostIndex, actions)
-            ghostIndex += 1
-            for childState in childrenState:
-                v = min(v, value(childState, alpha, beta, depth, ghostIndex))
-                if v <= alpha: return v
+            for action in state.getLegalActions(ghostIndex):
+                if ghostIndex == GhostIndex[-1]:
+                    v = min(v, max_value(state=state.getNextState(ghostIndex, action),
+                                         alpha=alpha,
+                                         beta=beta,
+                                         depth=depth + 1))
+                else:
+                    v = min(v, min_value(state=state.getNextState(ghostIndex, action),
+                                         alpha=alpha,
+                                         beta=beta,
+                                         depth=depth,
+                                         ghostIndex=ghostIndex + 1))
+                if v < alpha: return v
                 beta = min(beta, v)
             return v
 
-        """def alphabeta(state):
-
+        def alpha_beta():
             v = -float('inf')
-            act = None
+            move = None
             A = -float('inf')
             B = float('inf')
-
-            for action in state.getLegalActions(0):  # maximizing
-                tmp = value(state=gameState.getNextState(0, action),
-                            depth=0,
-                            ghostIndex=1,
-                            alpha=A, beta=B)
-
-                if v < tmp:  # same as v = max(v, tmp)
+            for action in gameState.getLegalActions(0):
+                tmp = min_value(state=gameState.getNextState(0, action),
+                                alpha=A,
+                                beta=B,
+                                depth=0,
+                                ghostIndex=1)
+                if v < tmp:  # updating best move
                     v = tmp
-                    act = action
-
+                    move = action
                 if v > B:  # pruning
-                    return v
-                A = max(A, tmp)
+                    continue
+                A = max(A, v)  # updating best value so far
+            return move
 
-            return act
-
-        return alphabeta(gameState)"""
-
-        """def min_val(curr_state, curr_depth, agent_index, a, b):
-            ghost_num = curr_state.getNumAgents() - 1
-            if curr_depth == self.depth or curr_state.isWin() or curr_state.isLose():
-                return self.evaluationFunction(curr_state)
-            val = float("+inf")
-            for action in curr_state.getLegalActions(agent_index):
-                succ_state = curr_state.getNextState(agent_index, action)
-                if agent_index == ghost_num:
-                    val = min(val, max_val(succ_state, curr_depth + 1, a, b))
-                    if val < a:
-                        return val
-                    b = min(b, val)
-                else:
-                    val = min(val, min_val(succ_state, curr_depth, agent_index + 1, a, b))
-                    if val < a:
-                        return val
-                    b = min(b, val)
-
-            return val
-
-        def max_val(curr_state, curr_depth, a, b):
-            if curr_depth == self.depth or curr_state.isWin() or curr_state.isLose():
-                return self.evaluationFunction(curr_state)
-            val = float("-inf")
-            for action in curr_state.getLegalActions(0):
-                val = max(min_val(curr_state.getNextState(0, action), curr_depth, 1, a, b), val)
-                if val > b:
-                    return val
-                a = max(a, val)
-            return val"""
-
-        result = float("-inf")
-        Action = "Still"
-        a = float("-inf")
-        b = float("+inf")
-        for action in gameState.getLegalActions(0):
-            tmp = value(gameState.getNextState(0, action), depth=0, ghostIndex=1,
-                        alpha=a, beta=b)
-            if tmp > result:
-                Action = action
-                result = tmp
-            if result > b:
-                return result
-            a = max(a, result)
-        return Action
+        return alpha_beta()
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
