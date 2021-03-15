@@ -325,34 +325,30 @@ def betterEvaluationFunction(currentGameState):
     DESCRIPTION: <write something here so we know what you did>
     """
     "*** YOUR CODE HERE ***"
-    GHOST_INDEX = 1
-    pacman_position = currentGameState.getPacmanPosition()
-    ghost_state = currentGameState.getGhostState(GHOST_INDEX)
-    ghost_position = currentGameState.getGhostPosition(GHOST_INDEX)
-    capsules_positions = currentGameState.getCapsules()
-    food_num = currentGameState.getNumFood()
-    food_grids = currentGameState.getFood()
-    walls_grid = currentGameState.getWalls()
-    is_lose = currentGameState.isLose()
-    is_win = currentGameState.isWin()
-    game_score = currentGameState.getScore()  # the official game score
+    pacPos = currentGameState.getPacmanPosition()
+    MD1 = []
+    foodPositions = currentGameState.getFood().asList()
+    for foodPos in foodPositions:
+        l = manhattanDistance(pacPos, foodPos)
+        MD1.append(l)
 
-    game_weight = 0
-    if is_win:
-        game_weight = float('inf')
-    elif is_lose:
-        game_weight = -float('inf')
+    MD2 = []  # list to store ManD to ghosts
+    ghostPositions = currentGameState.getGhostPositions()
+    for ghostPos in ghostPositions:
+        distance_to_ghost = manhattanDistance(pacPos, ghostPos)
+        if distance_to_ghost == 0:  # never step on the ghost
+            MD2.append(-float('inf'))
+        else:
+            MD2.append(distance_to_ghost)
 
-    distance_to_ghost = manhattanDistance(pacman_position, ghost_position)
-    ghost_value = 0
-    if distance_to_ghost <= 1:
-        ghost_value = -100
+    if currentGameState.isLose():  # if stepped on the ghost
+        return -float('inf')
+    else:
+        if currentGameState.isWin():  # not stepped on the ghost and ate all the foods
+            return float('inf')
+        score = min(MD2) / min(MD1) ** 1.8 + 2 * currentGameState.getScore()
+        return score
 
-    distance_to_nearest_food = getMinDistance(pacman_position, food_grids)
-    print(food_num)
-    eva_function = -100*food_num
-
-    return eva_function
 
 
 # Abbreviation
