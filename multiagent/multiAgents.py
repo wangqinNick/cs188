@@ -23,7 +23,7 @@ def getMinDistance(newPos, newFood):
     min_distance = 999999
     for i in range(len(newFood[0])):
         for j in range(len(newFood[1])):
-            if util.manhattanDistance(newPos, (i, j)) < min_distance:
+            if newFood[i][j] == True and util.manhattanDistance(newPos, (i, j)) < min_distance:
                 min_distance = util.manhattanDistance(newPos, (i, j))
     return min_distance
 
@@ -83,18 +83,28 @@ class ReflexAgent(Agent):
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
         "*** YOUR CODE HERE ***"
 
-        newGhostPosition = childGameState.getGhostPosition(agentIndex=1)
-        distance_to_ghost = util.manhattanDistance(newPos, newGhostPosition)
-        new_food_num = childGameState.getNumFood()
-        distance_to_nearest_food = getMinDistance(newPos=newPos, newFood=newFood)
-        num_pacman = childGameState.getNumAgents()
-        if distance_to_ghost <= 2:
-            distance_penalty = -100
-        else:
-            distance_penalty = 1
-        evaluated_score = - 5 * new_food_num + 10 * num_pacman + distance_penalty
-        return evaluated_score
+        newFoodPos = newFood.asList()  # food_pos list
+        MD_to_foods = []  # list to store ManD to foods
 
+        for food in newFoodPos:
+            distance_to_food = manhattanDistance(newPos, food)
+            MD_to_foods.append(distance_to_food)
+
+        MD_to_ghosts = []  # list to store ManD to ghosts
+        for ghost in newGhostStates:
+            distance_to_ghost = manhattanDistance(newPos, ghost.getPosition())
+            if distance_to_ghost == 0:  # never step on the ghost
+                MD_to_ghosts.append(-float('inf'))
+            else:
+                MD_to_ghosts.append(distance_to_ghost)
+
+        if childGameState.isLose():  # if stepped on the ghost
+            return -float('inf')
+        else:
+            if childGameState.isWin():  # not stepped on the ghost and ate all the foods
+                return float('inf')
+            score = min(MD_to_ghosts) / min(MD_to_foods) ** 1.3 + 2 * childGameState.getScore()
+            return score
 
 def scoreEvaluationFunction(currentGameState):
     """
@@ -265,6 +275,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
 
         return alpha_beta()
 
+
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
       Your expectimax agent (question 4)
@@ -314,7 +325,34 @@ def betterEvaluationFunction(currentGameState):
     DESCRIPTION: <write something here so we know what you did>
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    GHOST_INDEX = 1
+    pacman_position = currentGameState.getPacmanPosition()
+    ghost_state = currentGameState.getGhostState(GHOST_INDEX)
+    ghost_position = currentGameState.getGhostPosition(GHOST_INDEX)
+    capsules_positions = currentGameState.getCapsules()
+    food_num = currentGameState.getNumFood()
+    food_grids = currentGameState.getFood()
+    walls_grid = currentGameState.getWalls()
+    is_lose = currentGameState.isLose()
+    is_win = currentGameState.isWin()
+    game_score = currentGameState.getScore()  # the official game score
+
+    game_weight = 0
+    if is_win:
+        game_weight = float('inf')
+    elif is_lose:
+        game_weight = -float('inf')
+
+    distance_to_ghost = manhattanDistance(pacman_position, ghost_position)
+    ghost_value = 0
+    if distance_to_ghost <= 1:
+        ghost_value = -100
+
+    distance_to_nearest_food = getMinDistance(pacman_position, food_grids)
+    print(food_num)
+    eva_function = -100*food_num
+
+    return eva_function
 
 
 # Abbreviation
