@@ -1,8 +1,8 @@
 
 .idea/
 
-p1search/__pycache__/
+p1/p1search/__pycache__/
 
-p2multiagent/__pycache__/
+p2/p2multiagent/__pycache__/
 
 p3reinforcement/__pycache__/
